@@ -14,4 +14,5 @@ Kaggle competition : Build a model to predict whether a text is produced by a hu
 3/3
 - tfidf(max_feature=10000) + svc(default) : 0.6175  
 - tfidf(max_feature=10000) + adaboost(default) : 0.598  
-- "bert-base-cased"(max_length = 128) + BertForSequenceClassification(ep=30): 0.800 
+- "bert-base-cased"(max_length=128) + BertForSequenceClassification(ep=30 spl=1600): 0.800 
+- "bert-base-cased"(max_length=128) + BertForSequenceClassification(ep=50 spl=2800):  
