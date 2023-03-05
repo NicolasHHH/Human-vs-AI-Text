@@ -4,15 +4,18 @@ from tqdm import tqdm
 
 test_set = pd.read_json('./data/test_set.json')
 
-from transformers import BertTokenizer, BertForSequenceClassification, TrainingArguments, Trainer
+from transformers import BertTokenizer, BertForSequenceClassification, \
+    TrainingArguments, Trainer, XLNetForSequenceClassification, AutoTokenizer
 
-model_name = "bert-base-cased"
-tokenizer = BertTokenizer.from_pretrained(model_name)
+model_name = "bert-base-cased" # "bert-base-cased" "xlnet-base-cased"
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+
 max_length = 128
 
 predictions = []
 
 model = BertForSequenceClassification.from_pretrained("./model/").to("cuda")
+# model = XLNetForSequenceClassification.from_pretrained("./model_xlnet/").to("cuda")
 
 
 def get_prediction(text):
