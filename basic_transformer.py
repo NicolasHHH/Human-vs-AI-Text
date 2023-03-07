@@ -19,6 +19,7 @@ else:
 training_set = pd.read_json('./data/train_set.json')
 test_set = pd.read_json('./data/test_set.json')
 
+
 # tokenizer 1 https://towardsdatascience.com/top-5-word-tokenizers-that-every-nlp-data-scientist-should-know-45cc31f8e8b9
 # import nltk
 # from nltk.tokenize import TreebankWordTokenizer

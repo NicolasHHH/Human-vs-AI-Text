@@ -27,3 +27,7 @@ Kaggle competition : Build a model to predict whether a text is produced by a hu
 
 3/5
 - "bert-base-cased"(max_length=128) + xlnet(ep=50 spl=3800): **0.79** 
+
+### Weights
+
+https://drive.google.com/drive/folders/1_38fv85i-WXuSAbz0ZwMnY5lVoMO_H8Y?usp=sharing
