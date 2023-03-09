@@ -7,14 +7,14 @@ test_set = pd.read_json('./data/test_set.json')
 from transformers import BertTokenizer, BertForSequenceClassification, \
     TrainingArguments, Trainer, XLNetForSequenceClassification, AutoTokenizer
 
-model_name = "bert-base-cased" # "bert-base-cased" "xlnet-base-cased"
+model_name = "bert-base-uncased" # "bert-base-cased" "xlnet-base-cased"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 
 max_length = 128
 
 predictions = []
 
-model = BertForSequenceClassification.from_pretrained("./model/").to("cuda")
+model = BertForSequenceClassification.from_pretrained("./model_large/").to("cuda")
 # model = XLNetForSequenceClassification.from_pretrained("./model_xlnet/").to("cuda")
 
 

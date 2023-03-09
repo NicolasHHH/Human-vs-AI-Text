@@ -28,10 +28,10 @@ test_set = pd.read_json('./data/test_set.json')
 # tokenizer 2 https://huggingface.co/docs/transformers/tokenizer_summary
 from transformers import BertTokenizer, BertForSequenceClassification, TrainingArguments, Trainer
 
-model_name = "bert-base-uncased"
+model_name = "bert-large-uncased"
 tokenizer = BertTokenizer.from_pretrained(model_name)
 max_length = 128
-train_test_split = 3400
+train_test_split = 3000
 
 
 # tokenizer 3
@@ -66,7 +66,7 @@ def compute_metrics(pred):
 
 def get_prediction(text):
     # prepare our text into tokenized sequence
-    inputs = tokenizer(text, padding=True, truncation=True, max_length=max_length, return_tensors="pt").to(device)
+    inputs = tokenizer(text, padding=True, truncation=True, max_length=max_length, return_tensors="pt").to("cuda")
     # perform inference to our model
     outputs = model(**inputs)
     # get output probabilities by doing softmax
@@ -90,17 +90,17 @@ if __name__ == '__main__':
 
     model = BertForSequenceClassification.from_pretrained(model_name, num_labels=2).to(device)
     training_args = TrainingArguments(
-        output_dir='./results',  # output directory
+        output_dir='./results_large',  # output directory
         num_train_epochs=50,  # total number of training epochs
-        per_device_train_batch_size=24,  # batch size per device during training
-        per_device_eval_batch_size=20,  # batch size for evaluation
+        per_device_train_batch_size=16,  # batch size per device during training
+        per_device_eval_batch_size=16,  # batch size for evaluation
         warmup_steps=500,  # number of warmup steps for learning rate scheduler
         weight_decay=0.001,  # strength of weight decay
         logging_dir='./logs',  # directory for storing logs
         load_best_model_at_end=True,  # load the best model when finished training (default metric is loss)
         # but you can specify `metric_for_best_model` argument to change to accuracy or other metric
         logging_steps=500,  # log & save weights each logging_steps
-        save_steps=1000,
+        save_steps=2000,
         evaluation_strategy="steps",  # evaluate each `logging_steps`
     )
 
@@ -119,7 +119,7 @@ if __name__ == '__main__':
     trainer.evaluate()
 
     # saving the finetuned model & tokenizer
-    model_path = "./model"
+    model_path = "./model_large"
     model.save_pretrained(model_path)
     tokenizer.save_pretrained(model_path)
 
