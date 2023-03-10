@@ -4,11 +4,18 @@ import random
 import numpy as np
 import pandas as pd
 
-import torch
 from sklearn.metrics import accuracy_score
-from torch import nn
-import torch.nn.functional as F
-import torch.optim as optim
+import torch
+from torch.utils.data import Dataset, DataLoader
+from sklearn.metrics import classification_report, accuracy_score
+from transformers import (set_seed,
+                          TrainingArguments,
+                          Trainer,
+                          GPT2Config,
+                          GPT2Tokenizer,
+                          AdamW,
+                          get_linear_schedule_with_warmup,
+                          GPT2ForSequenceClassification)
 
 if torch.cuda.is_available():
     device = torch.device("cuda")
@@ -19,25 +26,37 @@ else:
 training_set = pd.read_json('./data/train_set.json')
 test_set = pd.read_json('./data/test_set.json')
 
-
-# tokenizer 1 https://towardsdatascience.com/top-5-word-tokenizers-that-every-nlp-data-scientist-should-know-45cc31f8e8b9
-# import nltk
-# from nltk.tokenize import TreebankWordTokenizer
-# tokenizer = TreebankWordTokenizer()
-
-# tokenizer 2 https://huggingface.co/docs/transformers/tokenizer_summary
-from transformers import BertTokenizer, BertForSequenceClassification, TrainingArguments, Trainer
-
-model_name = "bert-base-uncased"
-tokenizer = BertTokenizer.from_pretrained(model_name)
+model_name_or_path= "gpt2"
+n_labels = 2
 max_length = 128
-train_test_split = 3600
+train_test_split = 3500
 
 
-# tokenizer 3
-# from torchtext.data.utils import get_tokenizer
-# from torchtext.vocab import build_vocab_from_iterator
-# tokenizer = get_tokenizer('basic_english')
+def load_model():
+
+    # Get model configuration.
+    print('Loading configuraiton...')
+    model_config = GPT2Config.from_pretrained(pretrained_model_name_or_path=model_name_or_path, num_labels=n_labels)
+
+    # Get model's tokenizer.
+    print('Loading tokenizer...')
+    tokenizer = GPT2Tokenizer.from_pretrained(pretrained_model_name_or_path=model_name_or_path)
+    # default to left padding
+    tokenizer.padding_side = "left"
+    # Define PAD Token = EOS Token = 50256
+    tokenizer.pad_token = tokenizer.eos_token
+
+    # Get the actual model.
+    print('Loading model...')
+    model = GPT2ForSequenceClassification.from_pretrained(pretrained_model_name_or_path=model_name_or_path, config=model_config)
+
+    # resize model embedding to match new tokenizer
+    model.resize_token_embeddings(len(tokenizer))
+
+    # fix model padding token id
+    model.config.pad_token_id = model.config.eos_token_id
+    model.to(device)
+    return tokenizer, model
 
 
 class NewsGroupsDataset(torch.utils.data.Dataset):
@@ -64,9 +83,9 @@ def compute_metrics(pred):
     }
 
 
-def get_prediction(text):
+def get_prediction(tokenizer, text):
     # prepare our text into tokenized sequence
-    inputs = tokenizer(text, padding=True, truncation=True, max_length=max_length, return_tensors="pt").to(device)
+    inputs = tokenizer(text, padding=True, truncation=True, max_length=max_length, return_tensors="pt").to("cuda")
     # perform inference to our model
     outputs = model(**inputs)
     # get output probabilities by doing softmax
@@ -77,38 +96,31 @@ def get_prediction(text):
 
 if __name__ == '__main__':
 
-    test_label_xgboost = []
-    with open("submission_xgboost_83.csv", "r") as pred:
-        csv_in = csv.reader(pred)
-        for i, row in enumerate(csv_in):
-            if i >= 1:
-                test_label_xgboost.append(eval(row[1]))
-
-    train_encodings = tokenizer(training_set['text'].to_list()[0:train_test_split:]+test_set['text'].to_list(), truncation=True, padding=True,
+    tokenizer, model = load_model()
+    train_encodings = tokenizer(training_set['text'].to_list()[0:train_test_split], truncation=True, padding=True,
                                 max_length=max_length)
     test_encodings = tokenizer(training_set['text'].to_list()[train_test_split:], truncation=True, padding=True,
                                max_length=max_length)
 
-    train_y = training_set['label'].to_list()[0:train_test_split] + test_label_xgboost
+    train_y = training_set['label'].to_list()[0:train_test_split]
     test_y = training_set['label'].to_list()[train_test_split:]
 
     # convert our tokenized data into a torch Dataset
     train_dataset = NewsGroupsDataset(train_encodings, train_y)
     test_dataset = NewsGroupsDataset(test_encodings, test_y)
 
-    model = BertForSequenceClassification.from_pretrained(model_name, num_labels=2).to(device)
     training_args = TrainingArguments(
-        output_dir='./results',  # output directory
+        output_dir='./results_gpt',  # output directory
         num_train_epochs=50,  # total number of training epochs
         per_device_train_batch_size=24,  # batch size per device during training
-        per_device_eval_batch_size=20,  # batch size for evaluation
+        per_device_eval_batch_size=16,  # batch size for evaluation
         warmup_steps=500,  # number of warmup steps for learning rate scheduler
         weight_decay=0.001,  # strength of weight decay
         logging_dir='./logs',  # directory for storing logs
         load_best_model_at_end=True,  # load the best model when finished training (default metric is loss)
         # but you can specify `metric_for_best_model` argument to change to accuracy or other metric
         logging_steps=500,  # log & save weights each logging_steps
-        save_steps=1000,
+        save_steps=2000,
         evaluation_strategy="steps",  # evaluate each `logging_steps`
     )
 
@@ -127,7 +139,7 @@ if __name__ == '__main__':
     trainer.evaluate()
 
     # saving the finetuned model & tokenizer
-    model_path = "./model"
+    model_path = "./model_gpt"
     model.save_pretrained(model_path)
     tokenizer.save_pretrained(model_path)
 

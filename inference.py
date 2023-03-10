@@ -5,17 +5,28 @@ from tqdm import tqdm
 test_set = pd.read_json('./data/test_set.json')
 
 from transformers import BertTokenizer, BertForSequenceClassification, \
-    TrainingArguments, Trainer, XLNetForSequenceClassification, AutoTokenizer
+    TrainingArguments, Trainer, XLNetForSequenceClassification, \
+    AutoTokenizer, GPT2Config, GPT2Tokenizer, GPT2ForSequenceClassification
 
-model_name = "bert-base-uncased" # "bert-base-cased" "xlnet-base-cased"
+model_name = "bert-base-uncased"#   bert-base-uncased" # "bert-base-cased" "xlnet-base-cased"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 
 max_length = 128
 
 predictions = []
 
-model = BertForSequenceClassification.from_pretrained("./model_large/").to("cuda")
+model = BertForSequenceClassification.from_pretrained("./model/").to("cuda")
 # model = XLNetForSequenceClassification.from_pretrained("./model_xlnet/").to("cuda")
+
+# model_name_or_path = "./model/"
+# model_config = GPT2Config.from_pretrained(pretrained_model_name_or_path=model_name_or_path, num_labels=2)
+# tokenizer = GPT2Tokenizer.from_pretrained(pretrained_model_name_or_path=model_name_or_path)
+# tokenizer.padding_side = "left"
+# tokenizer.pad_token = tokenizer.eos_token
+# model = GPT2ForSequenceClassification.from_pretrained(pretrained_model_name_or_path=model_name_or_path, config=model_config)
+# model.resize_token_embeddings(len(tokenizer))
+# model.config.pad_token_id = model.config.eos_token_id
+# model.to("cuda")
 
 
 def get_prediction(text):
@@ -33,7 +44,7 @@ for text in tqdm(test_set['text'].to_list()):
     predictions.append(get_prediction(text).item())
 
 # Write predictions to a file
-with open("submission.csv", "w") as pred:
+with open("submission_bert_retrained.csv", "w") as pred:
     csv_out = csv.writer(pred)
     csv_out.writerow(['id', 'label'])
     for i, row in enumerate(predictions):
