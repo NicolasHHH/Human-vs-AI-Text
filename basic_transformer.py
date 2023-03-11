@@ -16,7 +16,7 @@ else:
     device = torch.device("cpu")  # GPU acc on mac : "mps"
 
 # Read The data
-training_set = pd.read_json('./data/train_set.json')
+training_set = pd.read_json('./data/train_set_aug.json')
 test_set = pd.read_json('./data/test_set.json')
 
 
@@ -28,11 +28,11 @@ test_set = pd.read_json('./data/test_set.json')
 # tokenizer 2 https://huggingface.co/docs/transformers/tokenizer_summary
 from transformers import BertTokenizer, BertForSequenceClassification, TrainingArguments, Trainer
 
+
 model_name = "bert-base-uncased"
 tokenizer = BertTokenizer.from_pretrained(model_name)
-max_length = 128
-train_test_split = 3600
-
+max_length = 256
+train_test_split = 3800
 
 # tokenizer 3
 # from torchtext.data.utils import get_tokenizer
@@ -100,9 +100,9 @@ if __name__ == '__main__':
     training_args = TrainingArguments(
         output_dir='./results',  # output directory
         num_train_epochs=50,  # total number of training epochs
-        per_device_train_batch_size=24,  # batch size per device during training
+        per_device_train_batch_size=32,  # batch size per device during training
         per_device_eval_batch_size=20,  # batch size for evaluation
-        warmup_steps=500,  # number of warmup steps for learning rate scheduler
+        warmup_steps=1000,  # number of warmup steps for learning rate scheduler
         weight_decay=0.001,  # strength of weight decay
         logging_dir='./logs',  # directory for storing logs
         load_best_model_at_end=True,  # load the best model when finished training (default metric is loss)
