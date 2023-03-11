@@ -1,5 +1,8 @@
 import pandas as pd
-from transformers import RobertaTokenizerFast, RobertaForSequenceClassification,Trainer, TrainingArguments
+from transformers import RobertaTokenizerFast, RobertaForSequenceClassification,Trainer, TrainingArguments,\
+    AutoTokenizer, DebertaForSequenceClassification
+
+
 import torch.nn as nn
 import torch
 from torch.utils.data import Dataset, DataLoader
@@ -21,6 +24,7 @@ max_length = 256
 model = RobertaForSequenceClassification.from_pretrained('roberta-base')
 tokenizer = RobertaTokenizerFast.from_pretrained('roberta-base', max_length = max_length)
 
+
 def compute_metrics(pred):
     labels = pred.label_ids
     preds = pred.predictions.argmax(-1)
@@ -37,21 +41,20 @@ def compute_metrics(pred):
 # define the training arguments
 training_args = TrainingArguments(
     output_dir = 'results_roberta',
-    num_train_epochs=100, # 50:87
-    per_device_train_batch_size = 32,
-    gradient_accumulation_steps = 4,#8:87
+    num_train_epochs=100,
+    per_device_train_batch_size = 16, # 32
+    gradient_accumulation_steps = 4,
     per_device_eval_batch_size= 16,
     evaluation_strategy = "steps",
     disable_tqdm = False,
     load_best_model_at_end=True,
-    warmup_steps=1000, # 800:87
+    warmup_steps=1000,
     weight_decay=0.01,
     logging_steps = 1000,
     fp16 = True,
     logging_dir='logs',
     save_steps=1000,
     dataloader_num_workers = 8,
-    run_name = 'roberta-classification'
 )
 
 class NewsGroupsDataset(torch.utils.data.Dataset):
@@ -70,7 +73,7 @@ class NewsGroupsDataset(torch.utils.data.Dataset):
 
 if __name__ == '__main__':
 
-    train_test_split = 100 # 300:87
+    train_test_split = 100 #
 
     train_encodings = tokenizer(training_set['text'].to_list()[train_test_split:], truncation=True, padding=True,
                                     max_length=max_length)
