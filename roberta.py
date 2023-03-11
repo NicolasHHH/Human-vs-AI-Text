@@ -21,9 +21,12 @@ test_set = pd.read_json('./data/test_set.json')
 max_length = 256
 
 # load model and tokenizer and define length of the text sequence
-model = RobertaForSequenceClassification.from_pretrained('roberta-base')
-tokenizer = RobertaTokenizerFast.from_pretrained('roberta-base', max_length = max_length)
+#model = RobertaForSequenceClassification.from_pretrained('roberta-base')
+#tokenizer = RobertaTokenizerFast.from_pretrained('roberta-base', max_length = max_length)
 
+tokenizer = AutoTokenizer.from_pretrained("microsoft/deberta-base")
+model = DebertaForSequenceClassification.from_pretrained("microsoft/deberta-base", num_labels=2)
+# comment line 1243
 
 def compute_metrics(pred):
     labels = pred.label_ids
@@ -40,9 +43,9 @@ def compute_metrics(pred):
 
 # define the training arguments
 training_args = TrainingArguments(
-    output_dir = 'results_roberta',
+    output_dir = 'results_deberta',
     num_train_epochs=100,
-    per_device_train_batch_size = 16, # 32
+    per_device_train_batch_size = 24, # 32
     gradient_accumulation_steps = 4,
     per_device_eval_batch_size= 16,
     evaluation_strategy = "steps",
@@ -104,6 +107,6 @@ if __name__ == '__main__':
     trainer.evaluate()
 
     # saving the finetuned model & tokenizer
-    model_path = "./model_roberta"
+    model_path = "./model_deberta"
     model.save_pretrained(model_path)
     tokenizer.save_pretrained(model_path)
