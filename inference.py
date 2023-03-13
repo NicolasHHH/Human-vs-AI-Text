@@ -9,18 +9,20 @@ test_set = pd.read_json('./data/test_set.json')
 
 from transformers import BertTokenizer, BertForSequenceClassification, \
     TrainingArguments, Trainer, XLNetForSequenceClassification, \
-    AutoTokenizer, GPT2Config, GPT2Tokenizer, GPT2ForSequenceClassification,\
-    RobertaTokenizerFast, RobertaForSequenceClassification,Trainer, TrainingArguments
+    AutoTokenizer, GPT2Config, GPT2Tokenizer, GPT2ForSequenceClassification, \
+    RobertaTokenizerFast, RobertaForSequenceClassification, Trainer, TrainingArguments, DebertaForSequenceClassification
 
 # model_name = "bert-base-uncased" #   bert-base-uncased" # "bert-base-cased" "xlnet-base-cased"
 # tokenizer = AutoTokenizer.from_pretrained(model_name)
 
 max_length = 256
-tokenizer = RobertaTokenizerFast.from_pretrained('roberta-base', max_length = max_length)
+#tokenizer = RobertaTokenizerFast.from_pretrained('roberta-base', max_length = max_length)
+tokenizer = AutoTokenizer.from_pretrained("./model_deberta")
 predictions = []
 
 #model = BertForSequenceClassification.from_pretrained("./model/").to("cuda")
-model = RobertaForSequenceClassification.from_pretrained('./model_roberta').to("cuda")
+#model = RobertaForSequenceClassification.from_pretrained('./model_roberta').to("cuda")
+model = DebertaForSequenceClassification.from_pretrained("./model_deberta", num_labels=2).to("cuda")
 # model = XLNetForSequenceClassification.from_pretrained("./model_xlnet/").to("cuda")
 
 # model_name_or_path = "./model/"
@@ -49,7 +51,7 @@ for text in tqdm(test_set['text'].to_list()):
     predictions.append(get_prediction(text).item())
 
 # Write predictions to a file
-with open("submission_roberta.csv", "w") as pred:
+with open("submission_deberta.csv", "w") as pred:
     csv_out = csv.writer(pred)
     csv_out.writerow(['id', 'label'])
     for i, row in enumerate(predictions):
