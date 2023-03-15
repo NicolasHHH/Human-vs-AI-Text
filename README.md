@@ -1,7 +1,13 @@
 # Human-vs-AI-Text
 
-Kaggle competition : Build a model to predict whether a text is produced by a human or a machine
+**Kaggle competition** : Build a model to predict whether a text is produced by a human or a machine
 
+**Team Name** : HSZ
+
+**Team Members** : 
+- tianyang.huang@polytechnique.edu 
+- yuyan.zhao@polytechnique.edu 
+- biao.shi@polytechnique.edu
 
 ## Dataset description
 
@@ -11,23 +17,31 @@ Kaggle competition : Build a model to predict whether a text is produced by a hu
 
 ## Quickstart 
 
+
+### Best Model:
+    DeBERTa+lgbm.ipynb
+
+## Custom Training and Testing the Text Feature Extractor
 ### Train 
-    python basic_transformer.py # bert_base_uncased
+    python roberta.py # support roberta/deberta training
+    python basic_transformer.py # support bert/xlnet training
+    python gpt2.py # support gpt2 training
 
 ### Test 
-    python inference.py # write results to submission.csv
+    python inference.py # template for writing results to submission.csv
 
-## Submit Logs:
+## Other Auxiliary Files
+    xlnet.py # train xlnet (poor performance)
+    EDA1.ipynb / EDA2.ipynb # Exploratory Data Analysis
+    logistiv_regression_baseline.py # baseline with logistic regression / adaboost / random forest
+    large_transformer.py # bert large (poor performance)
+    semi-supervised # enhance the dataset base on leaderboard results. (not useful)
 
-3/3
-- tfidf(max_feature=10000) + svc(default) : **0.6175**  
-- tfidf(max_feature=10000) + adaboost(default) : **0.598**  
-- "bert-base-cased"(max_length=128) + BertForSequenceClassification(ep=30 spl=1600): **0.800** 
-- "bert-base-cased"(max_length=128) + BertForSequenceClassification(ep=50 spl=2800): **0.830**
 
-3/5
-- "bert-base-cased"(max_length=128) + xlnet(ep=50 spl=3800): **0.79** 
+## Weights
 
-### Weights
+Some of the best weights can be downloaded here : 
 
 https://drive.google.com/drive/folders/1_38fv85i-WXuSAbz0ZwMnY5lVoMO_H8Y?usp=sharing
+
+Once Downloaded, each model folder should be placed in parallel at the root of the project folder.
